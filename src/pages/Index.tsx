@@ -6,28 +6,28 @@ import BugMap from "@/components/BugMap";
 import SearchBugs from "@/components/SearchBugs";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Camera, Map, Search, Heart } from "lucide-react";
+import { Camera, Map, Search, Heart, Bug } from "lucide-react";
 
 const Index = () => {
   const [identifiedBug, setIdentifiedBug] = useState(null);
   const [activeTab, setActiveTab] = useState("identify");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-green-100">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🐜</span>
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+                <Bug className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">BugAway</h1>
-                <p className="text-sm text-gray-600">정체불명 벌레, 사진 한 장으로 끝!</p>
+                <h1 className="text-2xl font-bold text-gray-800 tracking-tight">BugAway</h1>
+                <p className="text-sm text-emerald-600 font-medium">정체불명 벌레, 사진 한 장으로 끝!</p>
               </div>
             </div>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="border-green-200 hover:bg-green-50">
               <Heart className="w-4 h-4 mr-2" />
               즐겨찾기
             </Button>
@@ -37,23 +37,23 @@ const Index = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="identify" className="flex items-center space-x-2">
+          <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/70 backdrop-blur-sm">
+            <TabsTrigger value="identify" className="flex items-center space-x-2 data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
               <Camera className="w-4 h-4" />
               <span>벌레 식별</span>
             </TabsTrigger>
-            <TabsTrigger value="map" className="flex items-center space-x-2">
+            <TabsTrigger value="map" className="flex items-center space-x-2 data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
               <Map className="w-4 h-4" />
               <span>지역 정보</span>
             </TabsTrigger>
-            <TabsTrigger value="search" className="flex items-center space-x-2">
+            <TabsTrigger value="search" className="flex items-center space-x-2 data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
               <Search className="w-4 h-4" />
               <span>검색</span>
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="identify" className="space-y-6">
-            <div xmlns="http://www.w3.org/1999/xhtml" className="text-center mb-6">
+            <div className="text-center mb-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-2">
                 벌레 사진을 업로드하세요
               </h2>

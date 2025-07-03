@@ -2,7 +2,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Camera, Upload, Loader2 } from "lucide-react";
+import { Camera, Upload, Loader2, Bug } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 // Mock bug identification data
@@ -98,7 +98,7 @@ const ImageUpload = ({ onImageAnalyzed }: ImageUploadProps) => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto border-green-100 shadow-lg">
       <CardContent className="p-6">
         <div className="space-y-4">
           {uploadedImage ? (
@@ -106,7 +106,7 @@ const ImageUpload = ({ onImageAnalyzed }: ImageUploadProps) => {
               <img
                 src={uploadedImage}
                 alt="업로드된 벌레 사진"
-                className="w-full h-48 object-cover rounded-lg"
+                className="w-full h-48 object-cover rounded-lg border border-green-200"
               />
               {isAnalyzing && (
                 <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
@@ -118,8 +118,8 @@ const ImageUpload = ({ onImageAnalyzed }: ImageUploadProps) => {
               )}
             </div>
           ) : (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <div className="border-2 border-dashed border-green-300 rounded-lg p-8 text-center bg-green-50/50">
+              <Bug className="w-12 h-12 text-green-400 mx-auto mb-4" />
               <p className="text-gray-600 mb-4">
                 벌레 사진을 업로드하거나<br />
                 카메라로 촬영하세요
@@ -139,7 +139,7 @@ const ImageUpload = ({ onImageAnalyzed }: ImageUploadProps) => {
           <div className="flex space-x-2">
             <Button 
               onClick={triggerFileInput} 
-              className="flex-1"
+              className="flex-1 bg-green-600 hover:bg-green-700"
               disabled={isAnalyzing}
             >
               <Upload className="w-4 h-4 mr-2" />
@@ -148,7 +148,7 @@ const ImageUpload = ({ onImageAnalyzed }: ImageUploadProps) => {
             <Button 
               onClick={triggerFileInput} 
               variant="outline" 
-              className="flex-1"
+              className="flex-1 border-green-300 hover:bg-green-50"
               disabled={isAnalyzing}
             >
               <Camera className="w-4 h-4 mr-2" />
@@ -157,7 +157,7 @@ const ImageUpload = ({ onImageAnalyzed }: ImageUploadProps) => {
           </div>
 
           {isAnalyzing && (
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-gray-600 bg-green-50 p-3 rounded-lg">
               <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
               AI 분석 중... (약 5초 소요)
             </div>

@@ -1,9 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, AlertTriangle, Clock, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { MapPin, AlertTriangle, Clock, User, Navigation } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 // Mock location-based bug reports data
 const mockBugReports = [
@@ -60,18 +62,17 @@ const mockBugReports = [
 const BugMap = () => {
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   const [selectedReport, setSelectedReport] = useState<any>(null);
-
-  useEffect(() => {
-    // Mock current location (Seoul National University area)
-    setCurrentLocation({ lat: 37.4583, lng: 126.9510 });
-  }, []);
+  const [googleApiKey, setGoogleApiKey] = useState("");
+  const [showApiKeyInput, setShowApiKeyInput] = useState(true);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const googleMapRef = useRef<google.maps.Map | null>(null);
 
   const getDangerColor = (level: string) => {
     switch (level) {
-      case "높음": return "bg-red-500";
-      case "중간": return "bg-yellow-500";
-      case "낮음": return "bg-green-500";
-      default: return "bg-gray-500";
+      case "높음": return "#ef4444";
+      case "중간": return "#f59e0b";
+      case "낮음": return "#10b981";
+      default: return "#6b7280";
     }
   };
 
@@ -84,45 +85,169 @@ const BugMap = () => {
     }
   };
 
+  const initializeMap = () => {
+    if (!googleApiKey || !mapRef.current) return;
+
+    // Load Google Maps script
+    if (!window.google) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&callback=initMap`;
+      script.async = true;
+      script.defer = true;
+      
+      (window as any).initMap = () => {
+        createMap();
+      };
+      
+      document.head.appendChild(script);
+    } else {
+      createMap();
+    }
+  };
+
+  const createMap = () => {
+    if (!mapRef.current) return;
+
+    const center = { lat: 37.4583, lng: 126.9510 }; // Seoul National University area
+    
+    googleMapRef.current = new google.maps.Map(mapRef.current, {
+      zoom: 14,
+      center: center,
+      styles: [
+        {
+          featureType: "poi",
+          elementType: "labels",
+          stylers: [{ visibility: "off" }]
+        }
+      ]
+    });
+
+    // Add markers for bug reports
+    mockBugReports.forEach((report) => {
+      const marker = new google.maps.Marker({
+        position: { lat: report.lat, lng: report.lng },
+        map: googleMapRef.current,
+        title: report.bugName,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: getDangerColor(report.dangerLevel),
+          fillOpacity: 1,
+          strokeColor: "#ffffff",
+          strokeWeight: 2,
+        }
+      });
+
+      marker.addListener("click", () => {
+        setSelectedReport(report);
+      });
+    });
+
+    // Add current location marker
+    new google.maps.Marker({
+      position: center,
+      map: googleMapRef.current,
+      title: "현재 위치",
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: "#3b82f6",
+        fillOpacity: 1,
+        strokeColor: "#ffffff",
+        strokeWeight: 3,
+      }
+    });
+
+    setCurrentLocation(center);
+    setShowApiKeyInput(false);
+    
+    toast({
+      title: "지도가 로드되었습니다!",
+      description: "주변 벌레 신고 사례를 확인해보세요.",
+    });
+  };
+
+  const handleApiKeySubmit = () => {
+    if (!googleApiKey.trim()) {
+      toast({
+        title: "API 키를 입력해주세요",
+        description: "Google Maps API 키가 필요합니다.",
+        variant: "destructive"
+      });
+      return;
+    }
+    initializeMap();
+  };
+
   return (
     <div className="space-y-4">
-      {/* Map placeholder with location info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
+      {/* API Key Input */}
+      {showApiKeyInput && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center">
+              <Navigation className="w-5 h-5 mr-2" />
+              Google Maps 연동
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                실제 지도를 보려면 Google Maps API 키가 필요합니다.
+                <br />
+                <a 
+                  href="https://developers.google.com/maps/documentation/javascript/get-api-key" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  여기서 API 키를 발급받으세요
+                </a>
+              </p>
+              <div className="flex space-x-2">
+                <Input
+                  type="password"
+                  placeholder="Google Maps API 키를 입력하세요"
+                  value={googleApiKey}
+                  onChange={(e) => setGoogleApiKey(e.target.value)}
+                  className="flex-1"
+                />
+                <Button onClick={handleApiKeySubmit} className="bg-blue-600 hover:bg-blue-700">
+                  지도 로드
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Map */}
+      <Card className="border-green-100 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
+          <CardTitle className="flex items-center text-gray-800">
             <MapPin className="w-5 h-5 mr-2" />
             우리 동네 벌레 출몰 현황
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center mb-4 relative">
-            <div className="text-center">
-              <MapPin className="w-12 h-12 text-blue-500 mx-auto mb-2" />
-              <p className="text-gray-600">현재 위치: 서울시 관악구</p>
-              <p className="text-sm text-gray-500">반경 2km 내 신고 사례</p>
-            </div>
-            
-            {/* Mock map markers */}
-            <div className="absolute top-4 left-8">
-              <div className={`w-4 h-4 ${getDangerColor("높음")} rounded-full border-2 border-white shadow-lg cursor-pointer`}
-                   onClick={() => setSelectedReport(mockBugReports[0])}></div>
-            </div>
-            <div className="absolute top-12 right-12">
-              <div className={`w-4 h-4 ${getDangerColor("낮음")} rounded-full border-2 border-white shadow-lg cursor-pointer`}
-                   onClick={() => setSelectedReport(mockBugReports[1])}></div>
-            </div>
-            <div className="absolute bottom-8 left-16">
-              <div className={`w-4 h-4 ${getDangerColor("중간")} rounded-full border-2 border-white shadow-lg cursor-pointer`}
-                   onClick={() => setSelectedReport(mockBugReports[2])}></div>
-            </div>
-            <div className="absolute bottom-4 right-8">
-              <div className={`w-4 h-4 ${getDangerColor("높음")} rounded-full border-2 border-white shadow-lg cursor-pointer`}
-                   onClick={() => setSelectedReport(mockBugReports[3])}></div>
-            </div>
+          <div 
+            ref={mapRef}
+            className="w-full h-64 rounded-lg border border-green-200 bg-green-50 flex items-center justify-center"
+          >
+            {showApiKeyInput ? (
+              <div className="text-center text-gray-500">
+                <MapPin className="w-12 h-12 mx-auto mb-2 text-green-400" />
+                <p>Google Maps API 키를 입력하여 실제 지도를 확인하세요</p>
+              </div>
+            ) : (
+              <div className="text-center text-gray-500">
+                <p>지도 로딩 중...</p>
+              </div>
+            )}
           </div>
           
           {/* Legend */}
-          <div className="flex items-center justify-center space-x-4 text-sm">
+          <div className="flex items-center justify-center space-x-4 text-sm mt-4">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
               <span>높은 위험</span>
@@ -135,13 +260,17 @@ const BugMap = () => {
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               <span>낮은 위험</span>
             </div>
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+              <span>현재 위치</span>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Selected report details */}
       {selectedReport && (
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-blue-200 bg-blue-50 shadow-lg">
           <CardHeader>
             <CardTitle className="text-lg flex items-center justify-between">
               선택된 신고 사례
@@ -171,11 +300,11 @@ const BugMap = () => {
                   <User className="w-4 h-4 text-gray-500" />
                   <span>{selectedReport.reporter}</span>
                 </div>
-                <div className="text-blue-600 font-medium">
+                <div className="text-emerald-600 font-medium">
                   거리: {selectedReport.distance}
                 </div>
               </div>
-              <p className="text-gray-700 bg-white p-3 rounded">
+              <p className="text-gray-700 bg-white p-3 rounded border border-green-100">
                 {selectedReport.description}
               </p>
             </div>
@@ -184,15 +313,18 @@ const BugMap = () => {
       )}
 
       {/* Recent reports list */}
-      <Card>
-        <CardHeader>
-          <CardTitle>최근 신고 사례</CardTitle>
+      <Card className="border-green-100 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
+          <CardTitle className="text-gray-800">최근 신고 사례</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             {mockBugReports.map((report) => (
-              <div key={report.id} className="border rounded-lg p-3 hover:bg-gray-50 cursor-pointer"
-                   onClick={() => setSelectedReport(report)}>
+              <div 
+                key={report.id} 
+                className="border rounded-lg p-3 hover:bg-green-50 cursor-pointer transition-colors border-green-100"
+                onClick={() => setSelectedReport(report)}
+              >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <span className="font-medium">{report.bugName}</span>
@@ -200,7 +332,7 @@ const BugMap = () => {
                       {report.dangerLevel}
                     </Badge>
                   </div>
-                  <span className="text-sm text-blue-600">{report.distance}</span>
+                  <span className="text-sm text-emerald-600 font-medium">{report.distance}</span>
                 </div>
                 <div className="text-sm text-gray-600">
                   <p>{report.location}</p>
