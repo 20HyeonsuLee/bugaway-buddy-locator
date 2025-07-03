@@ -3,9 +3,17 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { MapPin, AlertTriangle, Clock, User, Navigation } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import L from 'leaflet';
+
+// Fix for default markers in Leaflet
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 // Mock location-based bug reports data
 const mockBugReports = [
@@ -60,12 +68,9 @@ const mockBugReports = [
 ];
 
 const BugMap = () => {
-  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   const [selectedReport, setSelectedReport] = useState<any>(null);
-  const [googleApiKey, setGoogleApiKey] = useState("");
-  const [showApiKeyInput, setShowApiKeyInput] = useState(true);
   const mapRef = useRef<HTMLDivElement>(null);
-  const googleMapRef = useRef<google.maps.Map | null>(null);
+  const leafletMapRef = useRef<L.Map | null>(null);
 
   const getDangerColor = (level: string) => {
     switch (level) {
@@ -85,142 +90,77 @@ const BugMap = () => {
     }
   };
 
-  const initializeMap = () => {
-    if (!googleApiKey || !mapRef.current) return;
-
-    // Load Google Maps script
-    if (!window.google) {
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&callback=initMap`;
-      script.async = true;
-      script.defer = true;
-      
-      (window as any).initMap = () => {
-        createMap();
-      };
-      
-      document.head.appendChild(script);
-    } else {
-      createMap();
-    }
+  const createCustomIcon = (color: string) => {
+    return L.divIcon({
+      className: 'custom-div-icon',
+      html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+      iconSize: [20, 20],
+      iconAnchor: [10, 10]
+    });
   };
 
-  const createMap = () => {
+  useEffect(() => {
     if (!mapRef.current) return;
 
-    const center = { lat: 37.4583, lng: 126.9510 }; // Seoul National University area
+    // Initialize Leaflet map
+    const center: L.LatLngExpression = [37.4583, 126.9510]; // Seoul National University area
     
-    googleMapRef.current = new google.maps.Map(mapRef.current, {
-      zoom: 14,
-      center: center,
-      styles: [
-        {
-          featureType: "poi",
-          elementType: "labels",
-          stylers: [{ visibility: "off" }]
-        }
-      ]
-    });
+    leafletMapRef.current = L.map(mapRef.current).setView(center, 14);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(leafletMapRef.current);
 
     // Add markers for bug reports
     mockBugReports.forEach((report) => {
-      const marker = new google.maps.Marker({
-        position: { lat: report.lat, lng: report.lng },
-        map: googleMapRef.current,
-        title: report.bugName,
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: getDangerColor(report.dangerLevel),
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2,
-        }
-      });
+      const marker = L.marker([report.lat, report.lng], {
+        icon: createCustomIcon(getDangerColor(report.dangerLevel))
+      }).addTo(leafletMapRef.current!);
 
-      marker.addListener("click", () => {
+      marker.on('click', () => {
         setSelectedReport(report);
       });
+
+      // Add popup
+      marker.bindPopup(`
+        <div style="font-family: sans-serif;">
+          <strong>${report.bugName}</strong><br/>
+          <span style="color: ${getDangerColor(report.dangerLevel)};">${report.dangerLevel} 위험</span><br/>
+          ${report.location}<br/>
+          <small>${report.reportTime}</small>
+        </div>
+      `);
     });
 
     // Add current location marker
-    new google.maps.Marker({
-      position: center,
-      map: googleMapRef.current,
-      title: "현재 위치",
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: "#3b82f6",
-        fillOpacity: 1,
-        strokeColor: "#ffffff",
-        strokeWeight: 3,
-      }
+    const currentLocationIcon = L.divIcon({
+      className: 'custom-div-icon',
+      html: `<div style="background-color: #3b82f6; width: 24px; height: 24px; border-radius: 50%; border: 4px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4);"></div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
     });
 
-    setCurrentLocation(center);
-    setShowApiKeyInput(false);
-    
+    L.marker(center, { icon: currentLocationIcon })
+      .addTo(leafletMapRef.current)
+      .bindPopup('현재 위치');
+
     toast({
       title: "지도가 로드되었습니다!",
       description: "주변 벌레 신고 사례를 확인해보세요.",
     });
-  };
 
-  const handleApiKeySubmit = () => {
-    if (!googleApiKey.trim()) {
-      toast({
-        title: "API 키를 입력해주세요",
-        description: "Google Maps API 키가 필요합니다.",
-        variant: "destructive"
-      });
-      return;
-    }
-    initializeMap();
-  };
+    // Cleanup
+    return () => {
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <div className="space-y-4">
-      {/* API Key Input */}
-      {showApiKeyInput && (
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center">
-              <Navigation className="w-5 h-5 mr-2" />
-              Google Maps 연동
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600">
-                실제 지도를 보려면 Google Maps API 키가 필요합니다.
-                <br />
-                <a 
-                  href="https://developers.google.com/maps/documentation/javascript/get-api-key" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  여기서 API 키를 발급받으세요
-                </a>
-              </p>
-              <div className="flex space-x-2">
-                <Input
-                  type="password"
-                  placeholder="Google Maps API 키를 입력하세요"
-                  value={googleApiKey}
-                  onChange={(e) => setGoogleApiKey(e.target.value)}
-                  className="flex-1"
-                />
-                <Button onClick={handleApiKeySubmit} className="bg-blue-600 hover:bg-blue-700">
-                  지도 로드
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Map */}
       <Card className="border-green-100 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
@@ -232,19 +172,9 @@ const BugMap = () => {
         <CardContent>
           <div 
             ref={mapRef}
-            className="w-full h-64 rounded-lg border border-green-200 bg-green-50 flex items-center justify-center"
-          >
-            {showApiKeyInput ? (
-              <div className="text-center text-gray-500">
-                <MapPin className="w-12 h-12 mx-auto mb-2 text-green-400" />
-                <p>Google Maps API 키를 입력하여 실제 지도를 확인하세요</p>
-              </div>
-            ) : (
-              <div className="text-center text-gray-500">
-                <p>지도 로딩 중...</p>
-              </div>
-            )}
-          </div>
+            className="w-full h-64 rounded-lg border border-green-200"
+            style={{ minHeight: '400px' }}
+          />
           
           {/* Legend */}
           <div className="flex items-center justify-center space-x-4 text-sm mt-4">
