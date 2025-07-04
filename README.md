@@ -1,3 +1,5 @@
+url: https://bugaway-buddy-locator.lovable.app
+
 # 🐜 BugAway  
 **정체불명 벌레, 사진 한 장으로 끝! 벌레 인식 + 대응 정보 제공 서비스**  
 > 사진만 업로드하면 AI가 벌레를 식별하고, 퇴치법과 사용자 경험,  
