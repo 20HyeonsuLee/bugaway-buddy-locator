@@ -1,73 +1,129 @@
-# Welcome to your Lovable project
+# 🐜 BugAway  
+**정체불명 벌레, 사진 한 장으로 끝! 벌레 인식 + 대응 정보 제공 서비스**  
+> 사진만 업로드하면 AI가 벌레를 식별하고, 퇴치법과 사용자 경험,  
+> 우리 동네 위험도를 지도 기반으로 안내해주는 **Mock 기반 프로토타입 서비스**
 
-## Project info
+---
 
-**URL**: https://lovable.dev/projects/30525114-5bf4-4baa-afba-0670426d7e10
+## ✅ 서비스 개요
 
-## How can I edit this code?
+**BugAway**는 사용자가 집이나 외부에서 마주친 정체불명의 벌레 사진을 업로드하면  
+**AI가 자동으로 곤충 종류를 판별하고**, **해당 해충의 정보와 퇴치 방법**,  
+**다른 사용자의 대응 경험**, 그리고 **위치 기반 출몰 정보 지도**까지 제공하는  
+**종합 벌레 대응 정보 서비스**입니다.
 
-There are several ways of editing your application.
+> 모든 데이터는 **Mock 기반**으로 구성되어 있으며, 실제 데이터 연동은 포함되지 않습니다.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/30525114-5bf4-4baa-afba-0670426d7e10) and start prompting.
+## 👤 사용자 정의
 
-Changes made via Lovable will be committed automatically to this repo.
+> 벌레를 무서워하거나 꺼려하지만 종종 마주치는 일반 사용자  
+> (정체불명의 벌레를 정확히 알고 대응하고 싶은 사람)
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🧍‍♀️ 페르소나
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 🏠 김예린 (29세, 자취생, 서울 관악구 거주)
 
-Follow these steps:
+- 바퀴벌레 같은 벌레가 집에서 나와 공포에 질림  
+- 벌레 정체를 몰라 인터넷 검색, 커뮤니티 질문 등으로 대응  
+- 최근 러브버그가 창문을 통해 들어온 사건 발생  
+- "이 동네가 위험지역인지, 어떻게 예방해야 할지" 알고 싶어함
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## 🎯 사용자 목표
 
-# Step 3: Install the necessary dependencies.
-npm i
+- 사진만으로 벌레가 **무슨 종류인지 식별**
+- 각 벌레의 **정확한 퇴치 방법** 확인
+- **지역 기반 위험도 정보**를 지도에서 한눈에 파악
+- **다른 사람들의 대응 후기**를 보고 대비 방법 참고
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+---
 
-**Edit a file directly in GitHub**
+## 📘 사용자 시나리오
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. 집에서 알 수 없는 벌레를 발견하고 사진을 찍음  
+2. `BugAway` 앱 실행 후 사진 업로드  
+3. AI가 자동으로 벌레를 판별하고 이름, 특징, 위험도 표시  
+4. 퇴치 방법 및 주의사항을 확인  
+5. **현재 위치 기반 지도**를 열어 주변 벌레 신고 사례 확인  
+6. 다른 사용자의 대응 후기와 댓글을 읽고 참고  
+7. 내 경험도 공유하거나 즐겨찾기 등록
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 💬 사용자 스토리
 
-## What technologies are used for this project?
+> “나는 벌레에 대한 공포가 심해서, 어떤 벌레인지도 모르고 마주하면 너무 불안해요.  
+> AI가 알려주는 정보랑 다른 사용자들의 대응 경험까지 함께 확인하면서  
+> 저도 차분하게 대응할 수 있었으면 좋겠어요.”
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## ✅ 인수 조건 (Acceptance Criteria)
 
-## How can I deploy this project?
+| Given                                 | When                                | Then                                                        |
+|--------------------------------------|-------------------------------------|-------------------------------------------------------------|
+| 사용자가 벌레 사진을 업로드했을 때     | AI 분석 요청을 하면                  | **5초 이내에** 벌레의 이름과 기본 정보가 화면에 표시된다    |
+| 사용자가 위치 권한을 허용했을 때       | 현재 위치 기준 벌레 출몰 데이터를 요청하면 | **지도에 근처 출몰 사례와 벌레 종류가 마커로 표시된다** |
+| 사용자가 벌레 상세 정보를 눌렀을 때     | 퇴치 방법을 요청하면                  | **간단한 설명과 사용자 경험이 함께 표시된다**               |
 
-Simply open [Lovable](https://lovable.dev/projects/30525114-5bf4-4baa-afba-0670426d7e10) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## 🔧 기능 요구사항
 
-Yes, you can!
+- 벌레 이미지 업로드 기능  
+- 외부 AI API와 연동된 **Mock 식별 결과 표시**  
+- 벌레 기본 정보 및 퇴치 방법 출력  
+- 다른 사용자들의 경험 후기 리스트 (댓글 형식)  
+- 벌레별 즐겨찾기 등록 기능  
+- **위치 기반 지도 기능**
+  - 사용자의 현재 위치 중심 지도 표시
+  - 주변 벌레 신고 사례 (종류/시간/사진 포함)를 마커로 표시
+  - 마커 클릭 시 해당 벌레 정보 및 사용자 대응 요약 노출
+- 특정 곤충 이름으로 검색 기능 제공
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+> **모든 데이터는 Mock 데이터로 처리됩니다.**
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+---
+
+## 🔍 기존 서비스와의 차별점
+
+| 항목                | 기존 커뮤니티/검색               | BugAway                                       |
+|---------------------|----------------------------------|-----------------------------------------------|
+| 벌레 식별            | 사용자 질문 또는 키워드 검색         | ✅ AI 기반 이미지 분석 (Mock 결과)              |
+| 퇴치 방법            | 혼재된 정보                        | ✅ 벌레별 정리된 대응 방법 제공                  |
+| 위치 기반 정보        | 없음                              | ✅ 내 주변 출몰 사례 지도 시각화                  |
+| 사용자 경험 공유      | 댓글/게시글 검색 수준                 | ✅ 같은 벌레 경험을 묶어서 보기 쉽게 구성           |
+| 인터랙티브 지도       | 없음                              | ✅ 실제 발생 사례 중심 마커 및 요약 정보 표시        |
+
+---
+
+## 📌 핵심 가치 제안
+
+| 가치              | 설명                                                      |
+|-------------------|-----------------------------------------------------------|
+| **불안 해소**       | 사진 한 장으로 정확한 정보 → 공포/스트레스 해소               |
+| **정확한 대응**     | 각 벌레별 퇴치법과 사용자 팁까지 포함                          |
+| **위치 기반 예측**  | 주변에 비슷한 사례가 많은지 지도에서 바로 확인                  |
+| **공감과 공유**     | 나만 겪는 일이 아니라는 심리적 위안 + 대응력 향상               |
+
+---
+
+## 🌐 프로토타입
+
+- URL: [https://insect-identifier.lovable.app/](https://insect-identifier.lovable.app/)  
+  *(모든 기능은 Mock 기반 프로토타입입니다)*
+
+---
+
+## 🛣 확장 방향 (추후 고도화)
+
+- AI 식별 정확도 개선 및 사용자 피드백 기반 재학습 기능  
+- 푸시 알림 기반 “우리 동네 벌레 출몰 경보”  
+- 퇴치용품 추천 및 커머스 연동  
+- 실시간 사용자 신고 기반 지도 자동 업데이트  
+- 농림·환경 공공 병해충 데이터 연계 가능성 확보
